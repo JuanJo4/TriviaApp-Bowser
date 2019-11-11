@@ -1,12 +1,14 @@
 import * as React from "react"
 import { observer } from "mobx-react-lite"
-import { ViewStyle, View, TextStyle, FlatList } from "react-native"
+import { ViewStyle, View, TextStyle, FlatList, Alert, TouchableOpacity } from "react-native"
+import { RadioButtons } from "react-native-radio-buttons"
 import { Text } from "../../components/text"
 import { Screen } from "../../components/screen"
 import { useStores } from "../../models/root-store"
 import { QuestionStore } from "../../models/question-store"
 import { color, spacing } from "../../theme"
 import { NavigationScreenProps } from "react-navigation"
+import { Button } from "../../components/button"
 import { Question } from "../../models/question"
 
 export interface QuestionScreenProps extends NavigationScreenProps<{}> {
@@ -30,21 +32,22 @@ const QUESTION: TextStyle = {
   fontSize: 16,
   marginVertical: spacing.medium,
 }
-
 const QUESTION_WRAPPER: ViewStyle = {
   borderBottomColor: color.line,
   borderBottomWidth: 1,
   paddingVertical: spacing.large,
 }
-
 const QUESTION_LIST: ViewStyle = {
   marginBottom: spacing.large,
 }
-
+const CHECK_ANSWER: ViewStyle = {
+  paddingVertical: spacing.medium,
+  backgroundColor: color.palette.angry,
+  marginTop: spacing.medium,
+}
 const ANSWER: TextStyle = {
   fontSize: 12,
 }
-
 const ANSWER_WRAPPER: ViewStyle = {
   paddingVertical: spacing.small,
 }
@@ -64,20 +67,43 @@ export const QuestionScreen: React.FunctionComponent<QuestionScreenProps> = obse
     fetchQuestions()
   }, [])
 
+  const onPressAnswer = (question: Question, guess: string) => {
+    question.setGuess(guess)
+  }
+
+  const checkAnswer = (question: Question) => {
+    if (question.isCorrect) {
+      Alert.alert("That is correct!")
+    } else {
+      Alert.alert(`Wrong! The correct answer is: ${question.correctAnswer}`)
+    }
+  }
+
+  const renderAnswer = (answer: string, selected: boolean, onSelect: () => void, index) => {
+    const style: TextStyle = selected ? { fontWeight: "bold", fontSize: 14 } : {}
+    return (
+      <TouchableOpacity key={index} onPress={onSelect} style={ANSWER_WRAPPER}>
+        <Text style={{ ...ANSWER, ...style }} text={answer} />
+      </TouchableOpacity>
+    )
+  }
+
   const renderQuestion = ({ item }) => {
     const question: Question = item
     return (
       <View style={QUESTION_WRAPPER}>
         <Text style={QUESTION} text={question.question} />
-        <View>
-          {question.allAnswers.map((a, index) => {
-            return (
-              <View key={index} style={ANSWER_WRAPPER}>
-                <Text style={ANSWER} text={a} />
-              </View>
-            )
-          })}
-        </View>
+        <RadioButtons
+          options={question.allAnswers}
+          onSelection={guess => onPressAnswer(question, guess)}
+          selectedOption={question.guess}
+          renderOption={renderAnswer}
+        />
+        <Button
+          style={CHECK_ANSWER}
+          onPress={() => checkAnswer(question)}
+          text={"Check Answer!"}
+        />
       </View>
     )
   }

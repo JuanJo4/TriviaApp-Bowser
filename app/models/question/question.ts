@@ -13,14 +13,22 @@ export const QuestionModel = types
     difficulty: types.enumeration(["easy", "medium", "hard"]),
     question: types.maybe(types.string),
     correctAnswer: types.maybe(types.string),
-    incorrectAnswers: types.optional(types.array(types.string), [])
+    incorrectAnswers: types.optional(types.array(types.string), []),
+    guess: types.optional(types.string, ""),
   })
   .views(self => ({
     get allAnswers() {
       return shuffle(self.incorrectAnswers.concat([self.correctAnswer]))
-    }
+    },
+    get isCorrect() {
+      return self.guess === self.correctAnswer
+    },
   }))
-  .actions(self => ({})) // eslint-disable-line @typescript-eslint/no-unused-vars
+  .actions(self => ({
+    setGuess(guess: string) {
+      self.guess = guess
+    },
+  }))
 
   /**
   * Un-comment the following to omit model attributes from your snapshots (and from async storage).
