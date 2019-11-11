@@ -4,19 +4,23 @@ import { getGeneralApiProblem } from "./api-problem"
 import { ApiConfig, DEFAULT_API_CONFIG } from "./api-config"
 import * as Types from "./api.types"
 import { QuestionSnapshot } from "../../models/question"
+import { decodeHTMLEntities } from "../../utils/html-decode"
 
 const API_PAGE_SIZE = 50
 
 const convertQuestion = (raw: any): QuestionSnapshot => {
   const id = uuid.v1()
+  const decodedQuestion = decodeHTMLEntities(raw.question)
+  const decodedAnswers = raw.incorrect_answers.map(a => decodeHTMLEntities(a))
+
   return {
     id: id,
     category: raw.category,
     type: raw.type,
     difficulty: raw.difficulty,
-    question: raw.question,
-    correctAnswer: raw.correct_answer,
-    incorrectAnswers: raw.incorrect_answers,
+    question: decodedQuestion,
+    correctAnswer: decodeHTMLEntities(raw.correct_answer),
+    incorrectAnswers: decodedAnswers,
   }
 }
 
